@@ -1,0 +1,25 @@
+{
+  "app_name": "telegram-files",
+  "custom_compose_config": {
+    "name": "telegram-files",
+    "services": {
+      "telegram-files": {
+        "container_name": "telegram-files",
+        "image": "ghcr.io/jarvis2f/telegram-files:latest",
+        "restart": "unless-stopped",
+        "environment": {
+          "APP_ENV": "prod",
+          "APP_ROOT": "/app/data",
+          "HTTP_SECURE_COOKIES": "false",
+          "TELEGRAM_API_ID": "REPLACE_WITH_MY_TELEGRAM_API_ID",
+          "TELEGRAM_API_HASH": "REPLACE_WITH_MY_TELEGRAM_API_HASH"
+        },
+        "ports": ["30096:80"],
+        "volumes": [
+          "/mnt/WD_Black_1TB_SSD/configs/telegram-files:/app/data",
+          "/mnt/Skyhawk_8TB_HDD/Downloads:/downloads"
+        ]
+      }
+    }
+  }
+}

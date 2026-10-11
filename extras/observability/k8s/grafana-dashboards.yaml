@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-truenas-overview
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  truenas-overview.json: |
+    {
+      "title": "TrueNAS Overview",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Jellyfin Probe",
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+          "targets": [{"expr": "probe_success{instance=\"http://192.168.68.56:30013\"}", "refId": "A"}],
+          "id": 1
+        },
+        {
+          "type": "stat",
+          "title": "Telegram Probe",
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+          "targets": [{"expr": "probe_success{instance=\"http://192.168.68.56:30096\"}", "refId": "A"}],
+          "id": 2
+        },
+        {
+          "type": "timeseries",
+          "title": "Host Memory Available",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+          "targets": [{"expr": "node_memory_MemAvailable_bytes{instance=~\".*192.168.68.56.*\"} or node_memory_MemAvailable_bytes", "refId": "A"}],
+          "id": 3
+        },
+        {
+          "type": "timeseries",
+          "title": "Host CPU Usage",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+          "targets": [{"expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "refId": "A"}],
+          "id": 4
+        }
+      ]
+    }

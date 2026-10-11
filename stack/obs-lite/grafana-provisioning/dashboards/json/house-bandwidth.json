@@ -1,0 +1,171 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "text",
+      "title": "Whole house (Deco X60)",
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Source:** TP-Link Deco at `192.168.68.1` (all Wi‑Fi + LAN clients).\n\n**Used till date** builds from Deco live rates while the exporter is running — it starts from **0 when we turned this on**, not from Airtel’s bill start. Cross-check **Airtel Thanks** for the official 3333 GB total."
+      }
+    },
+    {
+      "type": "stat",
+      "title": "House downloaded (since monitoring started) GB",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 3 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 2, "suffix": " GB" }
+      },
+      "targets": [
+        {
+          "expr": "deco_house_download_bytes_total / 1e9",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "House uploaded (since monitoring started) GB",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 3 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 2, "suffix": " GB" }
+      },
+      "targets": [
+        {
+          "expr": "deco_house_upload_bytes_total / 1e9",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "House download vs 3333 GB (from monitoring start)",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 3 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "max": 3333,
+          "decimals": 1,
+          "suffix": " GB",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2330 },
+              { "color": "red", "value": 2830 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "deco_house_download_bytes_total / 1e9",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Deco scrape OK",
+      "gridPos": { "h": 5, "w": 3, "x": 18, "y": 3 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "FAIL", "color": "red" }, "1": { "text": "OK", "color": "green" } } }
+          ]
+        }
+      },
+      "targets": [{ "expr": "deco_scrape_ok", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Clients online",
+      "gridPos": { "h": 5, "w": 3, "x": 21, "y": 3 },
+      "targets": [{ "expr": "deco_clients_online", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "House download now (Mbps)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 1, "suffix": " Mbps" }
+      },
+      "targets": [
+        {
+          "expr": "deco_house_download_bps * 8 / 1e6",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "House upload now (Mbps)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 1, "suffix": " Mbps" }
+      },
+      "targets": [
+        {
+          "expr": "deco_house_upload_bps * 8 / 1e6",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Whole-house live (Mbps)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 1,
+          "custom": { "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "deco_house_download_bps * 8 / 1e6",
+          "legendFormat": "Download",
+          "refId": "A"
+        },
+        {
+          "expr": "deco_house_upload_bps * 8 / 1e6",
+          "legendFormat": "Upload",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Top devices now (download Mbps)",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 20 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(10, deco_client_download_bps * 8 / 1e6)",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 39,
+  "tags": ["deco", "bandwidth", "house"],
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Whole House Bandwidth (Deco)",
+  "uid": "rk-house-deco",
+  "version": 1
+}

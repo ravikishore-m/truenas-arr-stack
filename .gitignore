@@ -1,0 +1,25 @@
+# Local secrets — never commit
+.env
+secrets/.nas-keys/
+secrets/*.key
+secrets/*.pem
+secrets/deco.env
+!**/*.example
+
+# Python / local junk
+__pycache__/
+*.py[cod]
+.music-tools/
+.venv/
+venv/
+*.egg-info/
+
+# Generated music reports
+flac-*.json
+tools/music/reports/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

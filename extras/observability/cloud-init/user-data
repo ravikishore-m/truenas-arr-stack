@@ -1,0 +1,21 @@
+#cloud-config
+hostname: k3s
+manage_etc_hosts: true
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: "K3sAdmin@123"
+ssh_pwauth: true
+package_update: true
+packages:
+  - curl
+  - ca-certificates
+  - open-iscsi
+  - nfs-common
+runcmd:
+  - [ bash, -lc, "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='server --disable traefik --write-kubeconfig-mode 644' sh -" ]
+  - [ bash, -lc, "until kubectl get nodes; do sleep 5; done" ]
+  - [ bash, -lc, "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash" ]
+final_message: "k3s cloud-init finished"

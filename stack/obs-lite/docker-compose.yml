@@ -1,0 +1,142 @@
+# Lean observability on TrueNAS: Grafana + Prometheus + Netdata (live UI).
+name: obs-lite
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: obs-prometheus
+    restart: unless-stopped
+    user: "root"
+    cpus: 1.0
+    mem_limit: 1024m
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=45d
+      - --storage.tsdb.retention.size=4GB
+      - --web.enable-lifecycle
+    ports:
+      - "30090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus-data:/prometheus
+    networks:
+      - obs
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: obs-grafana
+    restart: unless-stopped
+    cpus: 1.0
+    mem_limit: 512m
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-RkplexObs!2026}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_LOG_MODE: console
+      GF_LOG_LEVEL: warn
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:30091/"
+    ports:
+      - "30091:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - obs
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: obs-cadvisor
+    restart: unless-stopped
+    cpus: 0.5
+    mem_limit: 256m
+    privileged: true
+    ports:
+      - "30092:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    command:
+      - --housekeeping_interval=30s
+      - --docker_only=true
+      - --store_container_labels=false
+    networks:
+      - obs
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: obs-node-exporter
+    restart: unless-stopped
+    cpus: 0.25
+    mem_limit: 128m
+    pid: host
+    network_mode: host
+    command:
+      - --path.rootfs=/host
+      - --collector.disable-defaults
+      - --collector.cpu
+      - --collector.meminfo
+      - --collector.loadavg
+      - --collector.filesystem
+      - --collector.netdev
+      - --collector.diskstats
+      - --web.listen-address=:30103
+    volumes:
+      - /:/host:ro,rslave
+
+  netdata:
+    image: netdata/netdata:stable
+    container_name: obs-netdata
+    restart: unless-stopped
+    hostname: truenas-rkplex
+    cpus: 1.0
+    mem_limit: 512m
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    ports:
+      - "19999:19999"
+    volumes:
+      - ./netdata-config:/etc/netdata
+      - ./netdata-lib:/var/lib/netdata
+      - ./netdata-cache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - NETDATA_DISABLE_CLOUD=1
+      - DOCKER_HOST=/var/run/docker.sock
+    networks:
+      - obs
+
+  # Whole-home bandwidth via Deco local API (needs ./deco.env with DECO_PASSWORD)
+  deco-exporter:
+    build: ./deco-exporter
+    container_name: obs-deco-exporter
+    restart: unless-stopped
+    network_mode: host
+    cpus: 0.25
+    mem_limit: 256m
+    env_file:
+      - ./deco.env
+    volumes:
+      - ./deco-exporter-state:/var/lib/deco-exporter
+    environment:
+      - DECO_EXPORTER_PORT=9105
+
+networks:
+  obs:
+    driver: bridge

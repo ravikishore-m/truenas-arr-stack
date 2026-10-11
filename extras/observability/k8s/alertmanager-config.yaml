@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-kube-prometheus-stack-alertmanager
+  namespace: observability
+  labels:
+    app: kube-prometheus-stack-alertmanager
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: truenas-healer
+      group_by: ["alertname", "heal"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+      routes:
+        - matchers:
+            - heal=~".+"
+          receiver: truenas-healer
+          continue: true
+        - receiver: default
+    receivers:
+      - name: default
+      - name: truenas-healer
+        webhook_configs:
+          - url: http://192.168.68.56:9191/heal
+            send_resolved: true
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: truenas-healer
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+spec:
+  route:
+    receiver: truenas-healer
+    groupBy: ["alertname", "heal"]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 2h
+  receivers:
+    - name: truenas-healer
+      webhookConfigs:
+        - url: http://192.168.68.56:9191/heal
+          sendResolved: true

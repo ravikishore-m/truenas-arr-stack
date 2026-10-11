@@ -1,0 +1,22 @@
+# AdGuard Home — LAN DNS sinkhole (whole-network ad block via Deco custom DNS).
+# Web UI: http://192.168.68.56:30054 (first boot = setup wizard)
+services:
+  adguardhome:
+    image: adguard/adguardhome:v0.107.61
+    container_name: adguard-home
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "30054:3000/tcp"
+    volumes:
+      - ./work:/opt/adguardhome/work
+      - ./conf:/opt/adguardhome/conf
+    cap_add:
+      - NET_BIND_SERVICE
+    networks:
+      - adguard
+
+networks:
+  adguard:
+    driver: bridge

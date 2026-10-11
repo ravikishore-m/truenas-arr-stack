@@ -1,0 +1,225 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "title": "Netdata live (/v3)",
+      "url": "http://192.168.68.56:19999/v3",
+      "type": "link",
+      "icon": "external link",
+      "targetBlank": true
+    }
+  ],
+  "panels": [
+    {
+      "type": "text",
+      "title": "How to read this",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Used till date (GB)** = traffic on TrueNAS interface `enp4s0` in the **time range** you pick (top-right). Default is **This month**.\n\nThis is **NAS download/upload only** (Telegram, *arr*, Jellyfin remote, etc.) — not every phone/TV on Deco. For **full Airtel 3333 GB**, check **Airtel Thanks**.\n\n**Live Mbps** = current speed. Numbers are in normal Mbps (not TB/s)."
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Downloaded this period (GB)",
+      "description": "Total bytes received on enp4s0 in the selected time range",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "suffix": " GB"
+        }
+      },
+      "targets": [
+        {
+          "expr": "increase(node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"}[$__range]) / 1000000000",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Uploaded this period (GB)",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "suffix": " GB"
+        }
+      },
+      "targets": [
+        {
+          "expr": "increase(node_network_transmit_bytes_total{job=\"node\",device=\"$wan_if\"}[$__range]) / 1000000000",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "NAS download vs 3333 GB cap (approx)",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "max": 3333,
+          "decimals": 1,
+          "suffix": " GB",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2330 },
+              { "color": "red", "value": 2830 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "increase(node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"}[$__range]) / 1000000000",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "~ GB left (3333 − NAS down)",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "suffix": " GB"
+        }
+      },
+      "targets": [
+        {
+          "expr": "3333 - (increase(node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"}[$__range]) / 1000000000)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Download now (Mbps)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 1,
+          "suffix": " Mbps"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"}[5m]) * 8 / 1000000",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Upload now (Mbps)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 1,
+          "suffix": " Mbps"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_transmit_bytes_total{job=\"node\",device=\"$wan_if\"}[5m]) * 8 / 1000000",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Live traffic (Mbps) — $wan_if",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 13 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": { "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2 },
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Download" },
+            "properties": [{ "id": "custom.axisLabel", "value": "Mbps" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"}[5m]) * 8 / 1000000",
+          "legendFormat": "Download",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{job=\"node\",device=\"$wan_if\"}[5m]) * 8 / 1000000",
+          "legendFormat": "Upload",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Download used so far in period (GB) — running total",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "suffix": " GB",
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "(node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"} - node_network_receive_bytes_total{job=\"node\",device=\"$wan_if\"} offset $__range) / 1000000000",
+          "legendFormat": "Downloaded GB",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["bandwidth", "airtel", "fup"],
+  "templating": {
+    "list": [
+      {
+        "name": "wan_if",
+        "type": "custom",
+        "query": "enp4s0",
+        "current": { "text": "enp4s0", "value": "enp4s0" },
+        "options": [{ "text": "enp4s0", "value": "enp4s0", "selected": true }]
+      }
+    ]
+  },
+  "time": { "from": "now/M", "to": "now" },
+  "timepicker": {
+    "quick_ranges": [
+      { "display": "This month", "from": "now/M", "to": "now" },
+      { "display": "Last 30 days", "from": "now-30d", "to": "now" },
+      { "display": "Last 6 hours", "from": "now-6h", "to": "now" }
+    ]
+  },
+  "timezone": "browser",
+  "title": "Bandwidth & Airtel FUP",
+  "uid": "rk-bandwidth-fup",
+  "version": 2
+}

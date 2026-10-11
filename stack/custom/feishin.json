@@ -1,0 +1,22 @@
+{
+  "app_name": "feishin",
+  "custom_compose_config": {
+    "name": "feishin",
+    "services": {
+      "feishin": {
+        "container_name": "feishin",
+        "image": "ghcr.io/jeffvli/feishin:latest",
+        "restart": "unless-stopped",
+        "environment": {
+          "SERVER_NAME": "Navidrome",
+          "SERVER_TYPE": "navidrome",
+          "SERVER_URL": "http://192.168.68.56:30043",
+          "SERVER_LOCK": "true",
+          "LEGACY_AUTHENTICATION": "false",
+          "ANALYTICS_DISABLED": "true"
+        },
+        "ports": ["30048:9180"]
+      }
+    }
+  }
+}
